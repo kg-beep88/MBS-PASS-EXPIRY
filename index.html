@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#17324d">
+  <meta name="description" content="Simple employee pass expiry tracker with 15-day and 30-day alerts.">
+  <title>KG Pass Expiry Tracker</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">KG PLASTERCEIL</p>
+      <h1>Pass Expiry Tracker</h1>
+      <p class="subtitle">Red: expired or within 15 days · Yellow: 16–30 days</p>
+    </div>
+    <div class="topbar-actions">
+      <button id="refreshButton" class="button button-secondary" type="button">Refresh</button>
+      <button id="addButton" class="button button-primary" type="button">+ Add person</button>
+    </div>
+  </header>
+
+  <main class="page-shell">
+    <section id="setupNotice" class="notice notice-warning hidden" aria-live="polite">
+      <strong>One setup step is still needed.</strong>
+      Add your Google Apps Script web app URL inside <code>config.js</code>.
+    </section>
+
+    <section id="connectionNotice" class="notice notice-error hidden" aria-live="assertive"></section>
+
+    <section id="unlockPanel" class="unlock-card hidden" aria-labelledby="unlockTitle">
+      <div>
+        <p class="eyebrow">PRIVATE LIST</p>
+        <h2 id="unlockTitle">Enter access PIN</h2>
+        <p>The PIN is checked by your Google Apps Script. It is not saved inside the public GitHub code.</p>
+      </div>
+      <form id="unlockForm" class="unlock-form">
+        <label>
+          <span>Access PIN</span>
+          <input id="pinInput" name="pin" type="password" inputmode="numeric" autocomplete="current-password" required>
+        </label>
+        <label class="checkbox-row">
+          <input id="rememberPin" type="checkbox">
+          <span>Remember on this device</span>
+        </label>
+        <button class="button button-primary" type="submit">Open tracker</button>
+      </form>
+    </section>
+
+    <div id="appContent" class="hidden">
+      <section class="summary-grid" aria-label="Summary">
+        <article class="summary-card">
+          <span>Total records</span>
+          <strong id="totalCount">0</strong>
+        </article>
+        <article class="summary-card summary-expired">
+          <span>Expired</span>
+          <strong id="expiredCount">0</strong>
+        </article>
+        <article class="summary-card summary-urgent">
+          <span>Due within 15 days</span>
+          <strong id="urgentCount">0</strong>
+        </article>
+        <article class="summary-card summary-upcoming">
+          <span>Due in 16–30 days</span>
+          <strong id="upcomingCount">0</strong>
+        </article>
+      </section>
+
+      <section class="pinned-section">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">PINNED ALERTS</p>
+            <h2>Needs attention</h2>
+          </div>
+          <p id="lastUpdated" class="muted-text"></p>
+        </div>
+
+        <div class="alert-columns">
+          <article class="alert-panel urgent-panel">
+            <div class="panel-title-row">
+              <h3>Red · Expired / within 15 days</h3>
+              <span id="urgentBadge" class="count-badge count-badge-red">0</span>
+            </div>
+            <div id="urgentList" class="alert-list"></div>
+          </article>
+
+          <article class="alert-panel upcoming-panel">
+            <div class="panel-title-row">
+              <h3>Yellow · Within 30 days</h3>
+              <span id="upcomingBadge" class="count-badge count-badge-yellow">0</span>
+            </div>
+            <div id="upcomingList" class="alert-list"></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="records-section">
+        <div class="section-heading records-heading">
+          <div>
+            <p class="eyebrow">FULL REGISTER</p>
+            <h2>All pass expiry records</h2>
+          </div>
+          <div class="filters">
+            <label class="search-field">
+              <span class="sr-only">Search</span>
+              <input id="searchInput" type="search" placeholder="Search name or company">
+            </label>
+            <label>
+              <span class="sr-only">Filter by status</span>
+              <select id="statusFilter">
+                <option value="all">All status</option>
+                <option value="expired">Expired</option>
+                <option value="urgent">Within 15 days</option>
+                <option value="upcoming">16–30 days</option>
+                <option value="safe">More than 30 days</option>
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Company</th>
+                <th>Expiry date</th>
+                <th>Status</th>
+                <th class="actions-column">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="recordsBody"></tbody>
+          </table>
+          <div id="emptyState" class="empty-state hidden">
+            <strong>No matching records</strong>
+            <span>Add a person or change the search filter.</span>
+          </div>
+        </div>
+      </section>
+
+      <footer class="app-footer">
+        <button id="lockButton" class="text-button" type="button">Lock this device</button>
+        <span>Daily email recipient: shayne@kgplasterceil.com.sg</span>
+      </footer>
+    </div>
+  </main>
+
+  <dialog id="recordDialog" class="modal">
+    <form id="recordForm" method="dialog" class="modal-card">
+      <div class="modal-header">
+        <div>
+          <p class="eyebrow">PASS RECORD</p>
+          <h2 id="dialogTitle">Add person</h2>
+        </div>
+        <button id="closeDialogButton" class="icon-button" type="button" aria-label="Close">×</button>
+      </div>
+
+      <input id="recordId" type="hidden">
+
+      <label>
+        <span>Name *</span>
+        <input id="nameInput" type="text" maxlength="120" autocomplete="name" required>
+      </label>
+
+      <label>
+        <span>Company *</span>
+        <input id="companyInput" type="text" maxlength="160" autocomplete="organization" required>
+      </label>
+
+      <label>
+        <span>Expiry date *</span>
+        <input id="expiryInput" type="date" required>
+      </label>
+
+      <label>
+        <span>Notes</span>
+        <textarea id="notesInput" rows="3" maxlength="500" placeholder="Optional"></textarea>
+      </label>
+
+      <div class="modal-actions">
+        <button id="cancelDialogButton" class="button button-secondary" type="button">Cancel</button>
+        <button id="saveButton" class="button button-primary" type="submit">Save record</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+  <iframe id="backendFrame" name="backend-frame" class="hidden-frame" title="Background save response"></iframe>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

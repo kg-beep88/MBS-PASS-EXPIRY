@@ -1,0 +1,18 @@
+KG PASS EXPIRY TRACKER - SIMPLE SETUP CHECKLIST
+
+[ ] 1. Create a new Google Sheet.
+[ ] 2. Open Extensions > Apps Script.
+[ ] 3. Copy apps-script/Code.gs into Apps Script.
+[ ] 4. Change APP_PIN to your own private PIN.
+[ ] 5. Run initialSetup and approve permissions.
+[ ] 6. Deploy as Web app: Execute as Me / Access Anyone.
+[ ] 7. Copy the /exec URL.
+[ ] 8. Paste the URL into config.js.
+[ ] 9. Upload the website files to GitHub.
+[ ] 10. Turn on GitHub Pages from main / root.
+[ ] 11. Add a test record due in 10 days.
+[ ] 12. Run sendTestEmail once to confirm email delivery.
+
+Email recipient: shayne@kgplasterceil.com.sg
+Red: expired or within 15 days
+Yellow: 16 to 30 days
