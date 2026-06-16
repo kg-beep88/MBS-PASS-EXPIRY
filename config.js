@@ -3,6 +3,6 @@
   Example: https://script.google.com/macros/s/AKfycbxxxxxxxxxxxxxxxx/exec
 */
 window.KG_EXPIRY_CONFIG = {
-  SCRIPT_URL: "PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE",
+  SCRIPT_URL: "https://script.google.com/macros/s/AKfycbyioabEkHbHuZFIQk8i1V0K0MeejLKbKWiFq_Dom1nqbgbxjYjjKLMGGuzKS8xtQNIfsw/exec",
   APP_NAME: "KG Pass Expiry Tracker"
 };
